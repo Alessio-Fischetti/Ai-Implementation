@@ -1,10 +1,13 @@
 import { useState } from "react";
+import axios from "axios";
+
 import "./App.css";
 
 function App() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<string[]>([]);
   const [input, setInput] = useState("");
+  const [, setLoading] = useState(false);
 
   const OpenCloseChat = () => {
     setIsOpen(!isOpen);
@@ -14,13 +17,33 @@ function App() {
     setInput(e.target.value);
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyPress = async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       if (input.trim() === "") return;
 
       setMessages([...messages, input]);
       setInput("");
+
+      setLoading(true);
+
+      await new Promise(() => chiedi_al_bot(input));
+
+    }
+  };
+
+  const chiedi_al_bot = async (richiesta_utente: string) => {
+    try {
+      const response = await axios.post("il_vostro_dominio/chatBot/userRequest", {
+        richiesta: richiesta_utente,
+      });
+
+      setMessages((prev) => [...prev, `${response.data.content}`]);
+    } catch (error) {
+      console.error(error);
+      setMessages((prev) => [...prev, "Errore nella richiesta."]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -34,18 +57,14 @@ function App() {
         <div className="chatbot_chat">
           <div className="messages">
             {messages.map((msg, index) => (
-              <div key={index} className="message">{msg}</div>
+              <div key={index} className="message">
+                {msg}
+              </div>
             ))}
           </div>
 
           <div className="chatbot_inputarea">
-            <textarea
-              className="chat_input"
-              placeholder="Scrivi un messaggio..."
-              value={input}
-              onChange={handleInputChange}
-              onKeyDown={handleKeyPress}
-            />
+            <textarea className="chat_input" placeholder="Scrivi un messaggio..." value={input} onChange={handleInputChange} onKeyDown={handleKeyPress} />
           </div>
         </div>
       </div>

@@ -3,6 +3,7 @@ from fastapi import FastAPI
 
 import os
 from openai import OpenAI, BaseModel
+from starlette.middleware.cors import CORSMiddleware
 
 load_dotenv()
 
@@ -12,6 +13,18 @@ client = OpenAI(
 )
 app = FastAPI()
 
+origins = [
+    "http://localhost:5173",  # il dominio del tuo frontend Vite
+    "http://127.0.0.1:5173",  # se usi 127.0.0.1
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,      # domini permessi
+    allow_credentials=True,
+    allow_methods=["*"],        # GET, POST, etc.
+    allow_headers=["*"],  # Content-Type, Authorization...
+)
 
 class RichiestaUtente(BaseModel):
     richiesta: str
